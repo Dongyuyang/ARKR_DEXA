@@ -1,9 +1,9 @@
 #include "../commonTool/catch.h"
 #include "../commonTool/init_data.hpp"
 #include "../commonTool/common_tool.hpp"
-#include "model.hpp"
-#include "method.hpp"
-#include "vector_visitor.hpp"
+#include "inc/model.hpp"
+#include "inc/method.hpp"
+#include "inc/vector_visitor.hpp"
 
 #define D 3
 int main(int argc, char* argv[])
@@ -43,6 +43,23 @@ int main(int argc, char* argv[])
           weights.push_back(temp_w);
           //put_vector(w[i]);
       }
+
+      /*cluster*/
+      CATCH clucost;
+      clucost.catch_time();
+      int clu_number = std::pow(qs.size(),1/3.);
+      std::cout<< "number" << clu_number << std::endl;
+      auto c_Q = kmeans_Q(qs,D,clu_number);
+      for(auto && c : c_Q){
+          for(auto & cc : c){
+              put_vector(cc);
+          }
+          std::cout << "next cluser." << std::endl;
+      }
+      clucost.catch_time();
+      std::cout << "time: " << clucost.get_cost(2) << std::endl;
+
+      getchar();
 
       /*Navie*/
       CATCH naviecost;
