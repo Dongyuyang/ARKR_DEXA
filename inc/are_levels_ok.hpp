@@ -44,8 +44,9 @@ public:
         elements_type const& elements = rtree::elements(n);
 
         if(m_all_in){
-            num_E -= m_q_num;
-            num_E += elements.size() * m_q_num;
+            //num_E -= m_q_num;
+            //num_E += elements.size() * m_q_num;
+            num_E += elements.size() - 1;
             if(num_E >= k){
                 flag = -1;
                 stop = true;
@@ -72,7 +73,8 @@ public:
 
                     if(m_up < q_down){
                         counter++;
-                        num_E += m_q_num;
+                        //num_E += m_q_num;
+                        num_E++;
                         if(num_E >= k){
                             flag = -1;
                             return;
@@ -98,7 +100,8 @@ public:
         elements_type const& elements = rtree::elements(n);
 
         if(m_all_in){
-            num_E += m_q_num * elements.size();
+            //num_E += m_q_num * elements.size();
+            num_E += elements.size();
             if(num_E >= k){
                 flag = -1;
                 stop = true;
@@ -112,12 +115,13 @@ public:
                         boost::geometry::get<0>(it) * w_up[0] +
                         boost::geometry::get<1>(it) * w_up[1] +
                         boost::geometry::get<2>(it) * w_up[2] ;
-                    p_down =
+                    /*p_down =
                         boost::geometry::get<0>(it) * w_down[0] +
                         boost::geometry::get<1>(it) * w_down[1] +
-                        boost::geometry::get<2>(it) * w_down[2] ;
+                        boost::geometry::get<2>(it) * w_down[2] ;*/
 
                     if(p_up < q_down){
+                        //num_E += m_q_num;
                         num_E++;
                         if(num_E >= k){
                             flag = -1;

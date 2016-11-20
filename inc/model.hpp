@@ -26,7 +26,7 @@ public:
   Weight(int i, std::vector<double> v){id = i; value = v;};
 };
 
-
+/*rtree*/
 namespace bg = boost::geometry;
 namespace bgi = boost::geometry::index;
 typedef bg::model::point<float, D, bg::cs::cartesian> point;

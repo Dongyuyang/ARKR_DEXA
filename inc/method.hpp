@@ -7,6 +7,8 @@
 #include <boost/geometry/index/rtree.hpp>
 #include "traversal_rtree.hpp"
 #include "k-means.h"
+#include <algorithm>
+#include <cmath>
 
 /*count the number of p rank better than q*/
 static int counter_rank_p_q(double p_score, const std::vector<double> &q_scores)
@@ -14,7 +16,7 @@ static int counter_rank_p_q(double p_score, const std::vector<double> &q_scores)
   int counter = 0;
   for(auto q_score : q_scores){
       if(p_score < q_score)
-	counter += 1;
+          counter += 1;
   }
   return counter;
 }
@@ -35,12 +37,31 @@ int agg_rank_navie(const std::vector<Point> &p, const Weight &w, const std::vect
   return agg_rank;
 }
 
+/*max ARank*/
+int max_agg_rank(const std::vector<Point> &p,
+                 const Weight &w,
+                 const std::vector<std::vector<double> > &qs)
+{
+    int min = std::numeric_limits<int>::max();
+    for(auto &_q : qs){
+        auto q_score = inner_product(_q, w.value);
+        int q_rank = 0;
+        for(int i = 0; i < p.size();i++){
+            if(q_score > inner_product(p[i].value, w.value))
+                q_rank++;
+        }
+        min = std::min(min,q_rank);
+    }
+    return min;
+}
+
 /*Naive arkr*/
 std::multimap<int,int> naive_arkr(const std::vector<Point> &p, const std::vector<Weight> &w, const std::vector<std::vector<double> > &qs, int k)
 {
   std::multimap<int,int> id_rank;
   for(int i = 0; i < w.size();i++){
-    int c_rank = agg_rank_navie(p,w[i],qs);
+      //int c_rank = agg_rank_navie(p,w[i],qs);
+      int c_rank = max_agg_rank(p,w[i],qs);
     id_rank.insert(std::pair<int,int>(c_rank,w[i].id));
   }
 
@@ -74,11 +95,24 @@ std::multimap<int,int> tpm(bgi::rtree< r_point, bgi::rstar<16> > &rtree, const s
   double compute_times = 0;
   double non_leaf = 0;
   int thresold = std::numeric_limits<int>::max();
+
   for(int i = 0; i < w.size(); i++){
+
+      /*min max*/
+      std::vector<double> q;
+      double min = std::numeric_limits<double>::max();
+      for(auto &_q : qs){
+          double q_s = inner_product(_q,w[i].value);
+          if(q_s < min){
+              min = q_s;
+              q = _q;
+          }
+      }
+
       if(buffer.size() == k)
           int thresold = std::prev(buffer.end())->first;
       auto rs =
-          alo::traversal_rtree(rtree,qs,thresold,dimension,w[i].value,quplow,uplow);
+          alo::traversal_rtree(rtree,{q},thresold,dimension,w[i].value,quplow,uplow);
       compute_times += rs.access_leaf;
       non_leaf += rs.access_non_leaf;
       if(rs.rank == 0){
@@ -94,39 +128,6 @@ std::multimap<int,int> tpm(bgi::rtree< r_point, bgi::rstar<16> > &rtree, const s
 
   std::cout << "TPM: non leaf times: " << non_leaf  << std::endl;
   std::cout << "TPM: leaf times: " << compute_times  << std::endl;
-  return buffer;
-}
-
-std::multimap<int,int> stpm(bgi::rtree< r_point, bgi::rstar<16> > &rtree,
-                            const std::vector<Point> &p,
-                            const std::vector<Weight> &w,
-                            const std::vector<std::vector<double> > &qs,
-                            int k)
-{
-  std::multimap<int,int> buffer;
-  int dimension = qs[0].size();
-  double compute_times = 0;double non_leaf = 0;
-  auto q_clusters = Q_split_cluster(qs);
-  int thresold = std::numeric_limits<int>::max();
-
-  for(int i = k; i < w.size(); i++){
-      if(buffer.size () == k)
-          int thresold = std::prev(buffer.end())->first;
-      auto rs = alo::CLQ(rtree,qs,thresold,w[i].value,q_clusters);
-      compute_times += rs.access_leaf;
-      non_leaf = rs.access_non_leaf;
-      if(rs.rank == 0){
-          continue;
-      }
-      else{
-          if(buffer.size() == k)
-              update_buffer(buffer,rs.rank,w[i].id);
-          else
-              buffer.insert(std::pair<int,int>(rs.rank,w[i].id));
-      }
-  }
-  std::cout << "non leaf times: " << non_leaf / w.size() << std::endl;
-  std::cout << "computing times: " << compute_times / w.size() << std::endl;
   return buffer;
 }
 
@@ -213,6 +214,67 @@ triDouble kmeans_Q(const std::vector<std::vector<double> > &Q,
     return new_Q;
 }
 
+static int compare_vec(const std::vector<double> &a, const std::vector<double> &b)
+{
+    int c_big = 0;
+    int c_small = 0;
+
+    for(int i = 0; i < a.size(); i++){
+        if(a[i] >= b[i])
+            c_big++;
+        if(a[i] <= b[i])
+            c_small++;
+    }
+    if(c_big == a.size())
+        return 1;
+    if(c_small == a.size())
+        return -1;
+    return 0;
+}
+
+std::vector<std::vector<double> > filter_Q_min_max (
+                  const std::vector<std::vector<double> > &Q,
+                  const std::vector<std::vector<double> > &ch_vertex,
+                  bool min_max,
+                  int d
+                  )
+{
+    std::vector<double> corner;
+    if(min_max == 0)
+        corner = get_mbr(Q)[0];
+    if(min_max == 1)
+        corner = get_mbr(Q)[1];
+
+    std::vector<std::vector<double> > sub_set;
+    for(int i = 0; i < d; i++){
+        std::vector<double> p;
+        double min = std::numeric_limits<double>::max();
+        for(auto &_q : Q){
+            double diff = std::abs(corner[i] - _q[i]);
+            if(diff < min){
+                min = diff;
+                p = _q;
+            }
+        }
+        sub_set.push_back(p);
+    }
+
+    auto sub_mbr = get_mbr(sub_set);
+
+    for(auto _s : sub_set){
+        put_vector(_s);
+    }
+
+    std::vector<std::vector<double> > results;
+    for(auto &_q : ch_vertex){
+        if( compare_vec(_q, sub_mbr[0]) == 1
+            && compare_vec(_q, sub_mbr[1]) == -1
+            )
+            results.push_back(_q);
+    }
+
+    return results;
+}
 
 
 

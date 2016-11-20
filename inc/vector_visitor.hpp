@@ -87,8 +87,19 @@ public:
             if(m_buffer.size() >= k)
                 thresold = std::prev(m_buffer.end())->first;
 
+            /*min max*/
+            std::vector<double> q;
+            double min = std::numeric_limits<double>::max();
+            for(auto &_q : m_qs){
+                double q_s = inner_product(_q,w);
+                if(q_s < min){
+                    min = q_s;
+                    q = _q;
+                }
+            }
+
             auto rs =
-                alo::traversal_rtree(rtr, m_qs,
+                alo::traversal_rtree(rtr, {q},
                                      thresold, m_qs[0].size(),w,{{1,2}},false);
             non_leaf_times += rs.access_non_leaf;
             compute_times += rs.access_leaf;
