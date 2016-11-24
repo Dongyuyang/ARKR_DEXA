@@ -14,11 +14,11 @@ int main(int argc, char* argv[])
   int pw_num = atoi(argv[1]) * 1000;
   double q_range_low = atof(argv[3]);
   double q_range_up = atof(argv[4]);
-  double tpm_time = 0, dtm_time = 0, nai_time = 0;
+  double tpm_time = 0, dtm_time = 0, nai_time = 0, stpm_time = 0;
 
   std::vector<std::vector<double> > p(pw_num);
   std::vector<std::vector<double> > w(pw_num);
-  std::vector<std::vector<double> > qs(q_num);
+  std::vector<std::vector<double> > qs(q_num),qt(q_num);
 
   for(int n = 0; n < times; n++){
 
@@ -28,7 +28,8 @@ int main(int argc, char* argv[])
       //cluster_init(p,D,0,1,1);
       randinit_w(w,D,0,1);
       randinit(qs,D,q_range_low,q_range_up);
-      //randinit(qt,D,0.1,0.2);
+      randinit(qt,D,0.1,0.2);
+      qs.insert(qs.end(), qt.begin(),qt.end());
 
       std::vector<Point> points;
       std::vector<Weight> weights;
@@ -43,23 +44,6 @@ int main(int argc, char* argv[])
           weights.push_back(temp_w);
           //put_vector(w[i]);
       }
-
-      /*cluster*/
-      CATCH clucost;
-      clucost.catch_time();
-      int clu_number = std::pow(qs.size(),1/3.);
-      std::cout<< "number" << clu_number << std::endl;
-      auto c_Q = kmeans_Q(qs,D,clu_number);
-      for(auto && c : c_Q){
-          for(auto & cc : c){
-              put_vector(cc);
-          }
-          std::cout << "next cluser." << std::endl;
-      }
-      clucost.catch_time();
-      std::cout << "time: " << clucost.get_cost(2) << std::endl;
-
-      getchar();
 
       /*Navie*/
       CATCH naviecost;
@@ -81,9 +65,15 @@ int main(int argc, char* argv[])
       tpmcost.catch_time();
       tpm_time += tpmcost.get_cost(2);
 
+      CATCH stpmcost;
+      stpmcost.catch_time();
+      auto stpm_result = stpm(rr.rtree, points, weights,qs,k);
+      stpmcost.catch_time();
+      stpm_time += stpmcost.get_cost(2);
+
 
       /*DTM*/
-      std::multimap<int,int> buffer;
+      /*std::multimap<int,int> buffer;
       int dimension = qs[0].size();
       int current_rank = std::numeric_limits<int>::max();
       CATCH dtmcost;
@@ -92,20 +82,23 @@ int main(int argc, char* argv[])
       auto dtm_result =
           alo::vector_visitor(rr.rtree_w,qs,rr.rtree,current_rank,k);
       dtmcost.catch_time();
-      dtm_time += dtmcost.get_cost(2);
+      dtm_time += dtmcost.get_cost(2);*/
 
       /*report*/
       std::cout << "naive: " << std::endl;
       print_map(navie_result);
       std::cout << "TPM: " << std::endl;
       print_map(tpm_result);
-      std::cout << "DTM: " << std::endl;
-      print_map(dtm_result);
+      std::cout << "STPM: " << std::endl;
+      print_map(stpm_result);
+      //std::cout << "DTM: " << std::endl;
+      //print_map(dtm_result);
 
   } //times loop
 
   /*average time report*/
   std::cout << "naiv: cpu cost is " << (double) nai_time / times << " millisecond(s)" << std::endl;
   std::cout << "TPM: cpu cost is " << (double) tpm_time / times << " millisecond(s)" << std::endl;
-  std::cout << "DTM: cpu cost is " << (double) dtm_time / times << " millisecond(s)" << std::endl;
+  std::cout << "STPM: cpu cost is " << (double) stpm_time / times << " millisecond(s)" << std::endl;
+  //std::cout << "DTM: cpu cost is " << (double) dtm_time / times << " millisecond(s)" << std::endl;
 }

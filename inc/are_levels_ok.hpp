@@ -112,10 +112,6 @@ public:
                         boost::geometry::get<0>(it) * w_up[0] +
                         boost::geometry::get<1>(it) * w_up[1] +
                         boost::geometry::get<2>(it) * w_up[2] ;
-                    p_down =
-                        boost::geometry::get<0>(it) * w_down[0] +
-                        boost::geometry::get<1>(it) * w_down[1] +
-                        boost::geometry::get<2>(it) * w_down[2] ;
 
                     if(p_up < q_down){
                         num_E++;

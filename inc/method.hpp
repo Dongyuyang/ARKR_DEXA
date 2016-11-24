@@ -7,6 +7,7 @@
 #include <boost/geometry/index/rtree.hpp>
 #include "traversal_rtree.hpp"
 #include "k-means.h"
+#include "CLQ.hpp"
 
 /*count the number of p rank better than q*/
 static int counter_rank_p_q(double p_score, const std::vector<double> &q_scores)
@@ -97,39 +98,6 @@ std::multimap<int,int> tpm(bgi::rtree< r_point, bgi::rstar<16> > &rtree, const s
   return buffer;
 }
 
-std::multimap<int,int> stpm(bgi::rtree< r_point, bgi::rstar<16> > &rtree,
-                            const std::vector<Point> &p,
-                            const std::vector<Weight> &w,
-                            const std::vector<std::vector<double> > &qs,
-                            int k)
-{
-  std::multimap<int,int> buffer;
-  int dimension = qs[0].size();
-  double compute_times = 0;double non_leaf = 0;
-  auto q_clusters = Q_split_cluster(qs);
-  int thresold = std::numeric_limits<int>::max();
-
-  for(int i = k; i < w.size(); i++){
-      if(buffer.size () == k)
-          int thresold = std::prev(buffer.end())->first;
-      auto rs = alo::CLQ(rtree,qs,thresold,w[i].value,q_clusters);
-      compute_times += rs.access_leaf;
-      non_leaf = rs.access_non_leaf;
-      if(rs.rank == 0){
-          continue;
-      }
-      else{
-          if(buffer.size() == k)
-              update_buffer(buffer,rs.rank,w[i].id);
-          else
-              buffer.insert(std::pair<int,int>(rs.rank,w[i].id));
-      }
-  }
-  std::cout << "non leaf times: " << non_leaf / w.size() << std::endl;
-  std::cout << "computing times: " << compute_times / w.size() << std::endl;
-  return buffer;
-}
-
 static std::vector<double> most_sim_w(const std::vector<Weight> &w, int direcet_index, int dim)
 {
   std::vector<double> direct(dim,0);
@@ -211,6 +179,47 @@ triDouble kmeans_Q(const std::vector<std::vector<double> > &Q,
     labels = nullptr;
 
     return new_Q;
+}
+
+std::multimap<int,int> stpm(bgi::rtree< r_point, bgi::rstar<16> > &rtree,
+                            const std::vector<Point> &p,
+                            const std::vector<Weight> &w,
+                            const std::vector<std::vector<double> > &qs,
+                            int k)
+{
+  std::multimap<int,int> buffer;
+  int dimension = qs[0].size();
+  double compute_times = 0;double non_leaf = 0;
+  /*kmeans*/
+  auto c_Q = kmeans_Q(qs,dimension,std::pow(qs.size(),1/3.));
+  std::cout << "cluster num: " << c_Q.size();
+  /*for(auto && c : c_Q){
+      for(auto & cc : c){
+          put_vector(cc);
+      }
+      std::cout << "next cluser." << std::endl;
+      }*/
+
+  int thresold = std::numeric_limits<int>::max();
+  for(int i = k; i < w.size(); i++){
+      if(buffer.size () == k)
+          int thresold = std::prev(buffer.end())->first;
+      auto rs = alo::CLQ(rtree,qs,thresold,w[i].value,c_Q);
+      compute_times += rs.access_leaf;
+      non_leaf = rs.access_non_leaf;
+      if(rs.rank == 0){
+          continue;
+      }
+      else{
+          if(buffer.size() == k)
+              update_buffer(buffer,rs.rank,w[i].id);
+          else
+              buffer.insert(std::pair<int,int>(rs.rank,w[i].id));
+      }
+  }
+  std::cout << "non leaf times: " << non_leaf / w.size() << std::endl;
+  std::cout << "computing times: " << compute_times / w.size() << std::endl;
+  return buffer;
 }
 
 

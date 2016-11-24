@@ -25,11 +25,11 @@ class CLQ
     typedef typename rtree::leaf<Value, typename Options::parameters_type, Box, Allocators, typename Options::node_tag>::type leaf;
 
 public:
-    int access_non_leaf;int access_leaf;
+    int access_non_leaf, access_leaf;
     int m_threshold;
-    int m_small_rank; int current_cindex = 0;int now_size;
-    double m_qs_lower;double m_qs_upper;
-    bool m_all_in;bool stop;
+    int m_small_rank, current_cindex = -1;
+    double m_qs_lower, m_qs_upper;
+    bool m_all_in, stop, single_mode = false;
     std::vector<double> m_weight;
     std::vector<std::vector<double> > m_query_points;
     std::vector<double> q_scores;
@@ -76,28 +76,57 @@ public:
                         boost::geometry::get<1>(it->first.max_corner()) * m_weight[1] +
                         boost::geometry::get<2>(it->first.max_corner()) * m_weight[2] ;
 
-
-                    for(int nc = 0; nc < m_q_cluster_bound.size(); nc++){
-                        if(upper_score < m_q_cluster_bound[nc][0]){
-                            m_small_rank += m_q_cluster_bound[nc][2];
+                    if(single_mode){
+                        if(upper_score < m_q_cluster_bound[current_cindex][0]){
+                            m_small_rank += m_q_cluster_bound[current_cindex][2];
                             if(m_small_rank >= m_threshold){
                                 stop = true;
                                 return;
                             }
                             m_all_in = true;
-                            current_cindex = nc;
                             rtree::apply_visitor(*this, *it->second);
                             m_all_in = false;
                         }
+
+                        if(upper_score >= m_q_cluster_bound[current_cindex][0] &&
+                               lower_score <= m_q_cluster_bound[current_cindex][1])
+                                {
+                                    rtree::apply_visitor(*this, *it->second);
+                                }
+                    }
+                    else{
+
+                        for(int nc = 0; nc < m_q_cluster_bound.size(); nc++){
+                            if(upper_score < m_q_cluster_bound[nc][0]){
+                                m_small_rank += m_q_cluster_bound[nc][2];
+                                if(m_small_rank >= m_threshold){
+                                    stop = true;
+                                    return;
+                                }
+                                m_all_in = true;
+                                current_cindex = nc;
+                                rtree::apply_visitor(*this, *it->second);
+                                m_all_in = false;
+                            }
+
+                            if(upper_score >= m_q_cluster_bound[nc][0] &&
+                               lower_score <= m_q_cluster_bound[nc][1])
+                                {
+                                    single_mode = true;
+                                    current_cindex = nc;
+                                    rtree::apply_visitor(*this, *it->second);
+                                    single_mode = false;
+                                }
+                        }
+
+
                     }
 
-                    if(upper_score >= m_qs_lower && lower_score <= m_qs_upper){
+                    /*if(upper_score >= m_qs_lower && lower_score <= m_qs_upper){
                         m_all_in = false;
                         current_cindex = -1;
                         rtree::apply_visitor(*this, *it->second);
-                    }
-
-
+                        }*/
 
                 }
         }
@@ -132,8 +161,8 @@ public:
                         boost::geometry::get<2>(it) * m_weight[2] ;
 
                     bool temp_break = false;
-                    if(current_cindex != -1){
-                        for(auto q_score : m_q_cluster_scores[current_cindex]){
+                    if(single_mode){
+                        for(auto &q_score : m_q_cluster_scores[current_cindex]){
                             if(leaf_score < q_score){
                                 m_small_rank++;
                                 if(m_small_rank >= m_threshold){
@@ -143,22 +172,18 @@ public:
                                 }
                             }
                         }
-                    }
-                    else{
-                        for(auto &q_c : m_q_cluster_scores){
-                            for(auto &q_score : q_c){
-                                if(leaf_score < q_score){
-                                    m_small_rank++;
-                                    if(m_small_rank >= m_threshold){
-                                        stop = true;
-                                        temp_break = true;
-                                        break;
-                                    }
-                                }
+                    } else{
+                    for(auto &q_score : q_scores){
+                        if(leaf_score < q_score){
+                            m_small_rank++;
+                            if(m_small_rank >= m_threshold){
+                                stop = true;
+                                temp_break = true;
+                                break;
                             }
                         }
                     }
-
+                    }
                     if(temp_break)
                         break;
                 }
@@ -214,9 +239,16 @@ Results CLQ(Rtree const& tree,
         cindex++;
     }
 
+    /*v.m_q_cluster_bound[q_clusters.size()].push_back(v.m_qs_lower);
+    v.m_q_cluster_bound[q_clusters.size()].push_back(v.m_qs_upper);
+    v.m_q_cluster_bound[q_clusters.size()].push_back(qs.size());*/
+
+    v.current_cindex = q_clusters.size();
+
+
     std::vector<double> qs_scores(qs.size());
     for(int i = 0; i < qs_scores.size();i++)
-      qs_scores[i] = inner_product(qs[i],w);
+        qs_scores[i] = inner_product(qs[i],w);
     v.q_scores = qs_scores;
 
 
