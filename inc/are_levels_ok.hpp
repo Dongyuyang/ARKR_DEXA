@@ -8,8 +8,8 @@
 // Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef BOOST_GEOMETRY_INDEX_DETAIL_RTREE_UTILITIES_ARE_LEVELS_OK_HPP
-#define BOOST_GEOMETRY_INDEX_DETAIL_RTREE_UTILITIES_ARE_LEVELS_OK_HPP
+#ifndef _ARE_LEVELS_OK_HPP_
+#define _ARE_LEVELS_OK_HPP_
 
 #include <boost/geometry/index/detail/rtree/node/node.hpp>
 
@@ -28,11 +28,10 @@ class are_levels_ok
 
 public:
     inline are_levels_ok()
-        : result(true),
+        : 
           m_leafs_level((std::numeric_limits<size_t>::max)()),
-          m_current_level(0),number(0),
-          is_ignore(false),is_single_w(false),
-          num_E(0),flag(2)
+          m_current_level(0),
+          m_small_rank(0),flag(2)
     {}
 
     inline void operator()(internal_node const& n)
@@ -44,9 +43,9 @@ public:
         elements_type const& elements = rtree::elements(n);
 
         if(m_all_in){
-            num_E -= m_q_num;
-            num_E += elements.size() * m_q_num;
-            if(num_E >= k){
+            m_small_rank +=
+                (elements.size() - 1) * m_q_cluster_bound[current_cindex][2];
+            if(m_small_rank >= m_threshold){
                 flag = -1;
                 stop = true;
                 return;
@@ -60,31 +59,58 @@ public:
                   it != elements.end() ; ++it)
                 {
                     //version 2 not finished
-                    m_up =
+                    double upper_score =
                         boost::geometry::get<0>(it->first.max_corner()) * w_up[0] +
                         boost::geometry::get<1>(it->first.max_corner()) * w_up[1] +
                         boost::geometry::get<2>(it->first.max_corner()) * w_up[2] ;
 
-                    m_down =
+                    double lower_score =
                         boost::geometry::get<0>(it->first.min_corner()) * w_down[0] +
                         boost::geometry::get<1>(it->first.min_corner()) * w_down[1] +
                         boost::geometry::get<2>(it->first.min_corner()) * w_down[2] ;
 
-                    if(m_up < q_down){
-                        counter++;
-                        num_E += m_q_num;
-                        if(num_E >= k){
-                            flag = -1;
-                            return;
+                    if(single_mode){
+                        if(upper_score < m_q_cluster_bound[current_cindex][0]){
+                            m_small_rank += m_q_cluster_bound[current_cindex][2];
+                            if(m_small_rank >= m_threshold){
+                                flag = -1;
+                                stop = true;
+                                return;
+                            }
+                            m_all_in = true;
+                            rtree::apply_visitor(*this, *it->second);
+                            m_all_in = false;
                         }
-                        m_all_in = true;
-                        rtree::apply_visitor(*this, *it->second);
-                        m_all_in = false;
-                    }
-                    else if(m_down > q_up){
-                        counter++;
-                    }else{
-                        rtree::apply_visitor(*this, *it->second);
+
+                        if(upper_score >= m_q_cluster_bound[current_cindex][0] &&
+                               lower_score <= m_q_cluster_bound[current_cindex][1])
+                                {
+                                    rtree::apply_visitor(*this, *it->second);
+                                }
+                    } else {
+                        for(int nc = 0; nc < m_q_cluster_bound.size(); nc++){
+                            if(upper_score < m_q_cluster_bound[nc][0]){
+                                m_small_rank += m_q_cluster_bound[nc][2];
+                                if(m_small_rank >= m_threshold){
+                                    flag = -1;
+                                    stop = true;
+                                    return;
+                                }
+                                m_all_in = true;
+                                current_cindex = nc;
+                                rtree::apply_visitor(*this, *it->second);
+                                m_all_in = false;
+                            }
+
+                            if(upper_score >= m_q_cluster_bound[nc][0] &&
+                               lower_score <= m_q_cluster_bound[nc][1])
+                                {
+                                    single_mode = true;
+                                    current_cindex = nc;
+                                    rtree::apply_visitor(*this, *it->second);
+                                    single_mode = false;
+                                }
+                        }
                     }
                 }//for
         }//else
@@ -98,8 +124,9 @@ public:
         elements_type const& elements = rtree::elements(n);
 
         if(m_all_in){
-            num_E += m_q_num * elements.size();
-            if(num_E >= k){
+            m_small_rank +=
+                m_q_cluster_bound[current_cindex][2] * (elements.size() - 1);
+            if(m_small_rank >= m_threshold){
                 flag = -1;
                 stop = true;
                 return;
@@ -108,59 +135,69 @@ public:
             for ( typename elements_type::const_iterator it = elements.begin();
                   it != elements.end() ; ++it)
                 {
-                    p_up =
+                    double p_up =
                         boost::geometry::get<0>(it) * w_up[0] +
                         boost::geometry::get<1>(it) * w_up[1] +
                         boost::geometry::get<2>(it) * w_up[2] ;
 
-                    if(p_up < q_down){
-                        num_E++;
-                        if(num_E >= k){
-                            flag = -1;
-                            return;
+                    bool temp_break = false;
+                    if(single_mode){
+                        for(auto &q_score : m_q_cluster_scores[current_cindex]){
+                            if(p_up < q_score){
+                                m_small_rank++;
+                                if(m_small_rank >= m_threshold){
+                                    flag = -1;
+                                    stop = true;
+                                    temp_break = true;
+                                    break;
+                                }
+                            }
+                        }
+                    } else {
+                        for(auto &&q_c : m_q_cluster_scores){
+                            for(auto q_score : q_c){
+                                if(p_up < q_score){
+                                    m_small_rank++;
+                                    if(m_small_rank >= m_threshold){
+                                        flag = -1;
+                                        stop = true;
+                                        temp_break = true;
+                                        break;
+                                    }
+                                }
+                            }
                         }
                     }
+                    if(temp_break)
+                        break;
                 }//for
         }
 
     }
 
-    bool result;
-    //add by tou
-    bool is_ignore;
-    bool rtk;
     int flag;
-    int k,number,num_E;
-    double q_score;
+    int m_threshold,m_small_rank;
+    int current_cindex;
     std::vector<double> w;
+    std::vector<double> w_up,w_down;
+    bool m_all_in = false, stop = false, single_mode = false;
+    std::vector<std::vector<double> > m_q_cluster_bound;
+    std::vector<std::vector<double> > m_q_cluster_scores;
 
-    //new2
-    bool is_single_w;
-    double q_down;
-    double q_up;
-    std::vector<double> w_up;
-    std::vector<double> w_down;
-    bool is_frist;
-    double m_up,m_down,p_up,p_down;
-    int m_q_num;
-    bool m_all_in = false;
-    bool stop = false;
     int counter = 0;
 private:
-    size_t m_leafs_level;
-    size_t m_current_level;
+    size_t m_leafs_level, m_current_level;
 };
 
 } // namespace visitors
 
 template <typename Rtree> inline
 int  are_levels_ok(Rtree const& tree,
+                   int t,
                    const std::vector<double> &vector_up,
                    const std::vector<double> &vector_down,
-                   const std::vector<double> &qs_up,
-                   const std::vector<double> &qs_down,
-                   int kk,
-                   int q_num)
+                   const std::vector<std::vector<std::vector<double> > > &q_clusters
+                   )
 {
     typedef utilities::view<Rtree> RTV;
     RTV rtv(tree);
@@ -172,33 +209,34 @@ int  are_levels_ok(Rtree const& tree,
         typename RTV::allocators_type
         > v;
 
-    v.rtk = true;
-    v.k = kk;
+    v.m_threshold = t;
     v.w_up = vector_up;
     v.w_down = vector_down;
-    v.m_q_num = q_num;
 
-    double qq_up = 0, qq_down = 0;
-    for(int i = 0; i < qs_up.size();i++){
-        qq_up += qs_up[i] * vector_up[i];
-        qq_down += qs_down[i] * vector_down[i];
+    v.m_q_cluster_bound.resize(q_clusters.size());
+    v.m_q_cluster_scores.resize(q_clusters.size());
+    int cindex = 0;
+    for(auto &c : q_clusters){
+        auto mbr = get_mbr(c);
+        v.m_q_cluster_bound[cindex].push_back(inner_product(mbr[0],vector_down));
+        v.m_q_cluster_bound[cindex].push_back(inner_product(mbr[1],vector_up));
+        v.m_q_cluster_bound[cindex].push_back(c.size());
+        for(int i = 0; i < c.size(); i++)
+          v.m_q_cluster_scores[cindex].push_back(inner_product(c[i],vector_down));
+        cindex++;
     }
+    v.current_cindex = q_clusters.size();
 
-    v.q_up = qq_up;
-    v.q_down = qq_down;
-
-    if((vector_up[0] == vector_down[0]) && (vector_up[1] == vector_down[1]))
-        v.is_single_w = true;
-
+    /*apply*/
     rtv.apply_visitor(v);
 
     if(v.flag == 2){
-        if(v.num_E < kk)
+        if(v.m_small_rank < t)
             v.flag = 1;
         else
             v.flag = 0;
     }
-    //return v.result;
+
     return v.flag;
     //return 0;
 
@@ -208,4 +246,5 @@ int  are_levels_ok(Rtree const& tree,
 
 }}}}}} // namespace boost::geometry::index::detail::rtree::utilities
 
-#endif // BOOST_GEOMETRY_INDEX_DETAIL_RTREE_UTILITIES_ARE_LEVELS_OK_HPP
+
+#endif

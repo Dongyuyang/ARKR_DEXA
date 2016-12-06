@@ -65,6 +65,7 @@ int main(int argc, char* argv[])
       tpmcost.catch_time();
       tpm_time += tpmcost.get_cost(2);
 
+      /*STPM*/
       CATCH stpmcost;
       stpmcost.catch_time();
       auto stpm_result = stpm(rr.rtree, points, weights,qs,k);
@@ -73,16 +74,18 @@ int main(int argc, char* argv[])
 
 
       /*DTM*/
-      /*std::multimap<int,int> buffer;
+      std::multimap<int,int> buffer;
       int dimension = qs[0].size();
       int current_rank = std::numeric_limits<int>::max();
       CATCH dtmcost;
       dtmcost.catch_time();
       namespace alo = boost::geometry::index::detail::rtree::utilities;
+      auto c_Q = kmeans_Q(qs,D,std::pow(qs.size(),1/3.));
       auto dtm_result =
-          alo::vector_visitor(rr.rtree_w,qs,rr.rtree,current_rank,k);
+          alo::vector_visitor(rr.rtree_w,qs,rr.rtree,current_rank,k, c_Q);
       dtmcost.catch_time();
-      dtm_time += dtmcost.get_cost(2);*/
+      dtm_time += dtmcost.get_cost(2);
+
 
       /*report*/
       std::cout << "naive: " << std::endl;
@@ -91,8 +94,8 @@ int main(int argc, char* argv[])
       print_map(tpm_result);
       std::cout << "STPM: " << std::endl;
       print_map(stpm_result);
-      //std::cout << "DTM: " << std::endl;
-      //print_map(dtm_result);
+      std::cout << "DTM: " << std::endl;
+      print_map(dtm_result);
 
   } //times loop
 
@@ -100,5 +103,5 @@ int main(int argc, char* argv[])
   std::cout << "naiv: cpu cost is " << (double) nai_time / times << " millisecond(s)" << std::endl;
   std::cout << "TPM: cpu cost is " << (double) tpm_time / times << " millisecond(s)" << std::endl;
   std::cout << "STPM: cpu cost is " << (double) stpm_time / times << " millisecond(s)" << std::endl;
-  //std::cout << "DTM: cpu cost is " << (double) dtm_time / times << " millisecond(s)" << std::endl;
+  std::cout << "DTM: cpu cost is " << (double) dtm_time / times << " millisecond(s)" << std::endl;
 }

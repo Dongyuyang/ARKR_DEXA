@@ -11,11 +11,9 @@
 #include <time.h>
 #include <algorithm>
 #include "model.hpp"
-#include "are_levels_ok.hpp"
 
 #define D 3
 
-namespace alo = boost::geometry::index::detail::rtree::utilities;
 
 void rt::creat_rtree_p_w(std::vector<Point> &nodes, std::vector<Weight> &vectors)
 {

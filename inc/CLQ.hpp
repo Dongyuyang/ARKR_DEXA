@@ -8,6 +8,9 @@
 // Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
+#ifndef _CLQ_HPP_
+#define _CLQ_HPP_
+
 #include <boost/geometry/index/detail/rtree/node/node.hpp>
 #include <boost/foreach.hpp>
 
@@ -28,10 +31,8 @@ public:
     int access_non_leaf, access_leaf;
     int m_threshold;
     int m_small_rank, current_cindex = -1;
-    double m_qs_lower, m_qs_upper;
     bool m_all_in, stop, single_mode = false;
     std::vector<double> m_weight;
-    std::vector<std::vector<double> > m_query_points;
     std::vector<double> q_scores;
     std::vector<std::vector<double> > m_q_cluster_bound;
     std::vector<std::vector<double> > m_q_cluster_scores;
@@ -119,15 +120,20 @@ public:
                                 }
                         }
 
+                        /*for(int nc = 0; nc < m_q_cluster_bound.size(); nc++){
+                          if(upper_score >= m_q_cluster_bound[nc][0] &&
+                               lower_score <= m_q_cluster_bound[nc][1])
+                                {
+                                    single_mode = true;
+                                    current_cindex = nc;
+                                    rtree::apply_visitor(*this, *it->second);
+                                    single_mode = false;
+                                }
+                                }*/
+
+
 
                     }
-
-                    /*if(upper_score >= m_qs_lower && lower_score <= m_qs_upper){
-                        m_all_in = false;
-                        current_cindex = -1;
-                        rtree::apply_visitor(*this, *it->second);
-                        }*/
-
                 }
         }
     }
@@ -204,10 +210,10 @@ public:
 
 template <typename Rtree> inline
 Results CLQ(Rtree const& tree,
-            const std::vector<std::vector<double> > &qs,
             int t,
             const std::vector<double> &w,
-            const std::vector<std::vector<std::vector<double> > > &q_clusters
+            const std::vector<std::vector<std::vector<double> > > &q_clusters,
+            const std::vector<std::vector<double> > &qs
             )
 {
     typedef utilities::view<Rtree> RTV;
@@ -218,12 +224,7 @@ Results CLQ(Rtree const& tree,
         typename RTV::box_type,
         typename RTV::allocators_type
         > v(t);
-    v.m_query_points = qs;
     v.m_weight = w;
-
-    auto qmbr = get_mbr(qs);
-    v.m_qs_lower = inner_product(qmbr[0],w);
-    v.m_qs_upper = inner_product(qmbr[1],w);
 
     v.m_q_cluster_bound.resize(q_clusters.size());
     v.m_q_cluster_scores.resize(q_clusters.size());
@@ -238,19 +239,12 @@ Results CLQ(Rtree const& tree,
           v.m_q_cluster_scores[cindex].push_back(inner_product(c[i],w));
         cindex++;
     }
-
-    /*v.m_q_cluster_bound[q_clusters.size()].push_back(v.m_qs_lower);
-    v.m_q_cluster_bound[q_clusters.size()].push_back(v.m_qs_upper);
-    v.m_q_cluster_bound[q_clusters.size()].push_back(qs.size());*/
-
     v.current_cindex = q_clusters.size();
-
 
     std::vector<double> qs_scores(qs.size());
     for(int i = 0; i < qs_scores.size();i++)
         qs_scores[i] = inner_product(qs[i],w);
     v.q_scores = qs_scores;
-
 
     rtv.apply_visitor(v);
 
@@ -273,3 +267,4 @@ Results CLQ(Rtree const& tree,
 
 
 
+#endif /*_CLQ_HPP_*/

@@ -190,21 +190,17 @@ std::multimap<int,int> stpm(bgi::rtree< r_point, bgi::rstar<16> > &rtree,
   std::multimap<int,int> buffer;
   int dimension = qs[0].size();
   double compute_times = 0;double non_leaf = 0;
-  /*kmeans*/
-  auto c_Q = kmeans_Q(qs,dimension,std::pow(qs.size(),1/3.));
-  std::cout << "cluster num: " << c_Q.size();
-  /*for(auto && c : c_Q){
-      for(auto & cc : c){
-          put_vector(cc);
-      }
-      std::cout << "next cluser." << std::endl;
-      }*/
 
+  /*kmeans*/
+  int cl_num = std::pow(qs.size(),1/3.);
+  auto c_Q = kmeans_Q(qs,dimension,cl_num);
+
+  std::cout << "cluster num: " << c_Q.size() << std::endl;;
   int thresold = std::numeric_limits<int>::max();
   for(int i = k; i < w.size(); i++){
       if(buffer.size () == k)
           int thresold = std::prev(buffer.end())->first;
-      auto rs = alo::CLQ(rtree,qs,thresold,w[i].value,c_Q);
+      auto rs = alo::CLQ(rtree,thresold,w[i].value,c_Q,qs);
       compute_times += rs.access_leaf;
       non_leaf = rs.access_non_leaf;
       if(rs.rank == 0){

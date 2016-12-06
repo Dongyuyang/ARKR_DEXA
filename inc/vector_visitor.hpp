@@ -7,9 +7,10 @@
 // Use, modification and distribution is subject to the Boost Software License,
 // Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
+
 #include <boost/geometry/index/detail/rtree/node/node.hpp>
 #include "are_levels_ok.hpp"
-
+#include "CLQ.hpp"
 
 namespace bgi = boost::geometry::index;
 namespace alo = boost::geometry::index::detail::rtree::utilities;
@@ -55,7 +56,7 @@ public:
         if(m_buffer.size() == k)
             thresold = std::prev(m_buffer.end())->first;
 
-	    int temp = alo::are_levels_ok(rtr,w_max,w_min,qs_mbr[1],qs_mbr[0],thresold,m_qs.size());
+	    int temp = alo::are_levels_ok(rtr,thresold,w_max,w_min,m_c_Q);
 
 	    if(temp == 1){
 	      is_ignore = true;
@@ -87,9 +88,11 @@ public:
             if(m_buffer.size() >= k)
                 thresold = std::prev(m_buffer.end())->first;
 
-            auto rs =
-                alo::traversal_rtree(rtr, m_qs,
-                                     thresold, m_qs[0].size(),w,{{1,2}},false);
+            //auto rs =
+            //    alo::traversal_rtree(rtr, m_qs,
+            //                        thresold, m_qs[0].size(),w,{{1,2}},false);
+
+            auto rs = alo::CLQ(rtr, thresold, w, m_c_Q,m_qs);
             non_leaf_times += rs.access_non_leaf;
             compute_times += rs.access_leaf;
 
@@ -105,20 +108,21 @@ public:
     }
 
 private:
-  bool result;
+    bool result;
 public:
-  std::vector<std::vector<double> > m_qs;
-  bool is_ignore;
-  bgi::rtree< point, bgi::rstar<16> > rtr;
-  int k;
-  int thresold;
-  std::multimap<int,int> m_buffer;
-  std::vector<std::vector<double> > qs_mbr;
-  std::vector<double> w_min, w_max, w;
-  double non_leaf_times = 0;
-  double compute_times = 0;
-  double w_non_leaf = 0;
-  double w_leaf = 0;
+    std::vector<std::vector<double> > m_qs;
+    bool is_ignore;
+    bgi::rtree< point, bgi::rstar<16> > rtr;
+    int k;
+    int thresold;
+    std::multimap<int,int> m_buffer;
+    std::vector<std::vector<double> > qs_mbr;
+    std::vector<double> w_min, w_max, w;
+    std::vector<std::vector<std::vector<double> > > m_c_Q;
+    double non_leaf_times = 0;
+    double compute_times = 0;
+    double w_non_leaf = 0;
+    double w_leaf = 0;
 };
 
 } // namespace visitors
@@ -129,7 +133,8 @@ std::multimap<int,int> vector_visitor(
                                       const std::vector<std::vector<double> > &qs,
                                       bgi::rtree< point, bgi::rstar<16> > &rte,
                                       int current_rank,
-                                      int result_num)
+                                      int result_num,
+                                      const std::vector<std::vector<std::vector<double> > > &c_Q)
 {
   typedef utilities::view<Rtree> RTV;
   RTV rtv(tree);
@@ -149,6 +154,8 @@ std::multimap<int,int> vector_visitor(
   v.w_min.resize(dimension);
   v.w_max.resize(dimension);
   v.w.resize(dimension);
+
+  v.m_c_Q = c_Q;
 
   rtv.apply_visitor(v);
 
