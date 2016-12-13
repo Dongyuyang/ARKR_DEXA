@@ -90,27 +90,25 @@ int main(int argc, char* argv[])
       namespace alo = boost::geometry::index::detail::rtree::utilities;
       /*CH*/
       dyy::poly::ConvexHull CH(qs);
-
       auto new_q = filter_Q_min_max(qs, CH.get_points(), 0, D);
-
-      std::cout << "old_q: " << qs.size() << ",new_q: " << new_q.size() << std::endl;
+      //std::cout << "old_q: " << qs.size() << ",new_q: " << new_q.size() << std::endl;
       auto dtm_result =
           alo::vector_visitor(rr.rtree_w,new_q,rr.rtree,current_rank,k);
       dtmcost.catch_time();
       dtm_time += dtmcost.get_cost(2);
 
       /*report*/
-      std::cout << "naive: " << std::endl;
+      /*std::cout << "naive: " << std::endl;
       print_map(navie_result);
       std::cout << "TPM: " << std::endl;
       print_map(tpm_result);
       std::cout << "DTM: " << std::endl;
-      print_map(dtm_result);
+      print_map(dtm_result);*/
 
   } //times loop
 
   /*average time report*/
   std::cout << "naiv: cpu cost is " << (double) nai_time / times << " millisecond(s)" << std::endl;
-  std::cout << "TPM: cpu cost is " << (double) tpm_time / times << " millisecond(s)" << std::endl;
-  std::cout << "DTM: cpu cost is " << (double) dtm_time / times << " millisecond(s)" << std::endl;
+  std::cout << "DTM: cpu cost is " << (double) tpm_time / times << " millisecond(s)" << std::endl;
+  std::cout << "CDTM: cpu cost is " << (double) dtm_time / times << " millisecond(s)" << std::endl;
 }
