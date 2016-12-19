@@ -6,7 +6,7 @@
 #include "inc/vector_visitor.hpp"
 #include "inc/polygon.hpp"
 
-#define D 2
+#define D 3
 int main(int argc, char* argv[])
 {
   int k = atoi(argv[6]);
@@ -21,7 +21,7 @@ int main(int argc, char* argv[])
   std::vector<std::vector<double> > w(pw_num);
   std::vector<std::vector<double> > qs(q_num);
 
-  for(int n = 0; n < times; n++){
+
 
       randinit(p,D,0,1);
       //read_file(p, D, "dianping.dat");
@@ -46,6 +46,8 @@ int main(int argc, char* argv[])
           weights.push_back(temp_w);
           //put_vector(w[i]);
       }
+
+      for(int n = 0; n < times; n++){
 
       /*cluster*/
       /*CATCH clucost;
