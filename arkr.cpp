@@ -69,8 +69,6 @@ int main(int argc, char* argv[])
       naviecost.catch_time();
       auto navie_result = naive_arkr(points,weights,qs,k);
       naviecost.catch_time();
-      nai_time += naviecost.get_cost(2);
-
 
       /*init rtree_p,w*/
       rt rr;
@@ -82,7 +80,6 @@ int main(int argc, char* argv[])
       tpmcost.catch_time();
       auto tpm_result = tpm(rr.rtree, points, weights,qs,k,{},false);
       tpmcost.catch_time();
-      tpm_time += tpmcost.get_cost(2);
 
 
       /*DTM*/
@@ -95,11 +92,18 @@ int main(int argc, char* argv[])
       /*CH*/
       dyy::poly::ConvexHull CH(qs);
       auto new_q = filter_Q_min_max(qs, CH.get_points(), 0, D);
+      if(new_q.empty())
+          continue;
+
       //std::cout << "old_q: " << qs.size() << ",new_q: " << new_q.size() << std::endl;
       auto dtm_result =
           alo::vector_visitor(rr.rtree_w,new_q,rr.rtree,current_rank,k);
       dtmcost.catch_time();
+
+
       dtm_time += dtmcost.get_cost(2);
+      tpm_time += tpmcost.get_cost(2);
+      nai_time += naviecost.get_cost(2);
 
       /*report*/
       /*std::cout << "naive: " << std::endl;

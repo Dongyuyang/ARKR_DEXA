@@ -268,8 +268,13 @@ std::vector<std::vector<double> > filter_Q_min_max (
             && compare_vec(_q, sub_mbr[1]) == -1
             )
             results.push_back(_q);
-        else
+
+        if( compare_vec(_q, sub_mbr[0]) == 0
+            && compare_vec(_q, sub_mbr[1]) == 0
+            )
             results.push_back(_q);
+            //else
+        //cd    results.push_back(_q);
     }
 
     return results;
