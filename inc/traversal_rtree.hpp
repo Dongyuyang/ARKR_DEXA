@@ -73,12 +73,14 @@ public:
             for ( typename elements_type::const_iterator it = elements.begin();
                   it != elements.end() ; ++it)
                 {
+                    /*change dim jianghan*/
                     double lower_score =
                         boost::geometry::get<0>(it->first.min_corner()) * m_weight[0] +
                         boost::geometry::get<1>(it->first.min_corner()) * m_weight[1] +
                         boost::geometry::get<2>(it->first.min_corner()) * m_weight[2] ;
                     //boost::geometry::get<3>(it->first.min_corner()) * m_weight[3] ;
 
+                    /*change dim jianghan*/
                     double upper_score =
                         boost::geometry::get<0>(it->first.max_corner()) * m_weight[0] +
                         boost::geometry::get<1>(it->first.max_corner()) * m_weight[1] +
@@ -130,6 +132,7 @@ public:
             for ( typename elements_type::const_iterator it = elements.begin();
                   it != elements.end() ; ++it)
                 {
+                    /*change dim jianghan*/
                     double leaf_score =
                         boost::geometry::get<0>(it) * m_weight[0] +
                         boost::geometry::get<1>(it) * m_weight[1] +

@@ -13,6 +13,7 @@
 #include "model.hpp"
 #include "are_levels_ok.hpp"
 
+/*change dim jianghan*/
 #define D 3
 
 namespace alo = boost::geometry::index::detail::rtree::utilities;
@@ -45,9 +46,10 @@ void rt::creat_rtree_p_w(std::vector<Point> &nodes, std::vector<Weight> &vectors
   if(dimension > 3){
     //S
     point p1;
-    //ddd
+
+    /*change dim jianghan*/
     for(int i = 0;i < nodes.size(); ++i){
-      /*bg::set<0>(p1, nodes[i].value[0]);
+        /*bg::set<0>(p1, nodes[i].value[0]);
       bg::set<1>(p1, nodes[i].value[1]);
       bg::set<2>(p1, nodes[i].value[2]);
       bg::set<3>(p1, nodes[i].value[3]);
@@ -75,9 +77,10 @@ void rt::creat_rtree_p_w(std::vector<Point> &nodes, std::vector<Weight> &vectors
       bg::set<25>(p1, nodes[i].value[25]);*/
       rtree.insert(p1);
     }
-      
+
     //W
     point p2;
+    /*change dim jianghan*/
     for(int i = 0;i < vectors.size(); ++i){
       bg::set<0>(p2, vectors[i].value[0]);
       bg::set<1>(p2, vectors[i].value[1]);

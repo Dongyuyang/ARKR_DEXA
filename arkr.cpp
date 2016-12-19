@@ -6,7 +6,7 @@
 #include "inc/vector_visitor.hpp"
 #include "inc/polygon.hpp"
 
-#define D 3
+#define D 2
 int main(int argc, char* argv[])
 {
   int k = atoi(argv[6]);
@@ -24,9 +24,11 @@ int main(int argc, char* argv[])
   for(int n = 0; n < times; n++){
 
       randinit(p,D,0,1);
+      //read_file(p, D, "dianping.dat");
       //normal_init(p,D,0.5,1,0,1);
       //read_point_file(p,6,"data/houseD6.csv");
       //cluster_init(p,D,0,1,1);
+
       randinit_w(w,D,0,1);
       randinit(qs,D,q_range_low,q_range_up);
       //randinit(qt,D,0.1,0.2);

@@ -86,6 +86,7 @@ void print_map(const std::multimap<int,int>& map) {
 namespace bg = boost::geometry;
 namespace bgi = boost::geometry::index;
 namespace alo = boost::geometry::index::detail::rtree::utilities;
+/*change jianghan*/
 typedef bg::model::point<float, 3, bg::cs::cartesian> r_point;
 
 std::multimap<int,int> tpm(bgi::rtree< r_point, bgi::rstar<16> > &rtree, const std::vector<Point> &p, const std::vector<Weight> &w, const std::vector<std::vector<double> > &qs, int k, const std::vector<std::vector<double> > &quplow, bool uplow )
@@ -260,10 +261,6 @@ std::vector<std::vector<double> > filter_Q_min_max (
     }
 
     auto sub_mbr = get_mbr(sub_set);
-
-    for(auto _s : sub_set){
-        put_vector(_s);
-    }
 
     std::vector<std::vector<double> > results;
     for(auto &_q : ch_vertex){

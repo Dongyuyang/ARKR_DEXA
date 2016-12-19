@@ -44,10 +44,12 @@ public:
 	  }
 	  else{
 	    /*w_min*/
+        /*change dim jianghan*/
 	    w_min[0] = boost::geometry::get<0>(it->first.min_corner());
 	    w_min[1] = boost::geometry::get<1>(it->first.min_corner());
 	    w_min[2] = boost::geometry::get<2>(it->first.min_corner());
 	    /*w_max*/
+        /*change dim jianghan*/
 	    w_max[0] = boost::geometry::get<0>(it->first.max_corner());
 	    w_max[1] = boost::geometry::get<1>(it->first.max_corner());
 	    w_max[2] = boost::geometry::get<2>(it->first.max_corner());
@@ -80,6 +82,7 @@ public:
       for ( typename elements_type::const_iterator it = elements.begin();
 	    it != elements.end() ; ++it)
         {
+            /*change dim jianghan*/
             w[0] = boost::geometry::get<0>(it->first);
             w[1] = boost::geometry::get<1>(it->first);
             w[2] = boost::geometry::get<2>(it->first);

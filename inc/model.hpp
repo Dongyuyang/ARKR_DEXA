@@ -4,6 +4,7 @@
 #include <boost/geometry/index/rtree.hpp>
 //#include "model.hpp"
 
+/*change dim jianghan*/
 #define D 3
 
 /* Point: the product p (id,vector)*/

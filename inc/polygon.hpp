@@ -8,6 +8,7 @@
 #include <vector>
 #include <iostream>
 
+/*change dim jianghan*/
 #define D 3
 
 namespace dyy{
@@ -36,6 +37,7 @@ public:
         auto points = m_hull.outer();
         for(auto &p : points){
             std::vector<double> v(D);
+            /*change dim jianghan*/
             v[0] = bg::get<0>(p);
             v[1] = bg::get<1>(p);
             v[2] = bg::get<2>(p);
@@ -53,6 +55,7 @@ private:
         for(auto &q : Q){
             //D times
             point_poly p;
+            /*change dim jianghan*/
             bg::set<0>(p,q[0]);
             bg::set<1>(p,q[1]);
             bg::set<2>(p,q[2]);

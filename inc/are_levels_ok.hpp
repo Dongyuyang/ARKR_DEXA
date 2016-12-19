@@ -61,11 +61,13 @@ public:
                   it != elements.end() ; ++it)
                 {
                     //version 2 not finished
+                    /*change dim jianghan*/
                     m_up =
                         boost::geometry::get<0>(it->first.max_corner()) * w_up[0] +
                         boost::geometry::get<1>(it->first.max_corner()) * w_up[1] +
                         boost::geometry::get<2>(it->first.max_corner()) * w_up[2] ;
 
+                    /*change dim jianghan*/
                     m_down =
                         boost::geometry::get<0>(it->first.min_corner()) * w_down[0] +
                         boost::geometry::get<1>(it->first.min_corner()) * w_down[1] +
@@ -111,14 +113,12 @@ public:
             for ( typename elements_type::const_iterator it = elements.begin();
                   it != elements.end() ; ++it)
                 {
+                    /*change dim jianghan*/
                     p_up =
                         boost::geometry::get<0>(it) * w_up[0] +
                         boost::geometry::get<1>(it) * w_up[1] +
                         boost::geometry::get<2>(it) * w_up[2] ;
-                    /*p_down =
-                        boost::geometry::get<0>(it) * w_down[0] +
-                        boost::geometry::get<1>(it) * w_down[1] +
-                        boost::geometry::get<2>(it) * w_down[2] ;*/
+
 
                     if(p_up < q_down){
                         //num_E += m_q_num;
