@@ -92,10 +92,8 @@ int main(int argc, char* argv[])
       /*CH*/
       dyy::poly::ConvexHull CH(qs);
       auto new_q = filter_Q_min_max(qs, CH.get_points(), 0, D);
-      if(new_q.empty())
-          continue;
 
-      //std::cout << "old_q: " << qs.size() << ",new_q: " << new_q.size() << std::endl;
+      std::cout << "old_q: " << qs.size() << ",new_q: " << new_q.size() << std::endl;
       auto dtm_result =
           alo::vector_visitor(rr.rtree_w,new_q,rr.rtree,current_rank,k);
       dtmcost.catch_time();
@@ -106,12 +104,12 @@ int main(int argc, char* argv[])
       nai_time += naviecost.get_cost(2);
 
       /*report*/
-      /*std::cout << "naive: " << std::endl;
+      std::cout << "naive: " << std::endl;
       print_map(navie_result);
       std::cout << "TPM: " << std::endl;
       print_map(tpm_result);
       std::cout << "DTM: " << std::endl;
-      print_map(dtm_result);*/
+      print_map(dtm_result);
 
   } //times loop
 

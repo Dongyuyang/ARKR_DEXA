@@ -226,12 +226,36 @@ static int compare_vec(const std::vector<double> &a, const std::vector<double> &
         if(a[i] <= b[i])
             c_small++;
     }
+
+    std::cout << "big: " << c_big << ",small: " << c_small << std::endl;
+
     if(c_big == a.size())
         return 1;
     if(c_small == a.size())
         return -1;
     return 0;
 }
+
+static bool inRange(double r_l, double r_u, double value){
+    if(std::abs(value - r_l) <= 1e-6)
+        return true;
+    else if(std::abs(value - r_u) <= 1e-6)
+        return true;
+    else
+        return (value >= r_l && value <= r_u);
+}
+
+static bool inMbr(const std::vector<double> &m_l, const std::vector<double> &m_u,
+                  const std::vector<double> &value)
+{
+    bool flag = true;
+    for(int i = 0; i < value.size(); i++){
+        if(!inRange(m_l[i], m_u[i], value[i]))
+            flag = false;
+    }
+    return flag;
+}
+
 
 std::vector<std::vector<double> > filter_Q_min_max (
                   const std::vector<std::vector<double> > &Q,
@@ -262,19 +286,34 @@ std::vector<std::vector<double> > filter_Q_min_max (
 
     auto sub_mbr = get_mbr(sub_set);
 
-    std::vector<std::vector<double> > results;
-    for(auto &_q : ch_vertex){
-        if( compare_vec(_q, sub_mbr[0]) == 1
-            && compare_vec(_q, sub_mbr[1]) == -1
-            )
-            results.push_back(_q);
+    for(auto sm : sub_mbr[0])
+        std::cout << sm <<",";
+    std::cout << endl;
 
-        if( compare_vec(_q, sub_mbr[0]) == 0
-            && compare_vec(_q, sub_mbr[1]) == 0
-            )
-            results.push_back(_q);
-            //else
-        //cd    results.push_back(_q);
+    for(auto sm : sub_mbr[1])
+        std::cout << sm <<",";
+    std::cout << endl << endl;
+
+    std::vector<std::vector<double> > results;
+
+    if (std::equal(sub_mbr[0].begin(), sub_mbr[0].begin() + d, sub_mbr[1].begin()) ){
+        results.push_back(sub_mbr[0]);
+    }
+    else {
+        //for(auto &_q : ch_vertex){
+            /*if( compare_vec(_q, sub_mbr[0]) == 1
+                && compare_vec(_q, sub_mbr[1]) == -1
+                )
+                results.push_back(_q);*/
+        for(int i = 0; i < ch_vertex.size() - 1; i++){
+            if(inMbr(sub_mbr[0], sub_mbr[1], ch_vertex[i]))
+                results.push_back(ch_vertex[i]);
+        }
+    }
+
+    if(results.empty()){
+        std::cout << "mbr" << sub_set.size() << std::endl;
+
     }
 
     return results;
