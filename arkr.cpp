@@ -17,11 +17,13 @@ int main(int argc, char* argv[])
   double q_range_up = atof(argv[4]);
   double tpm_time = 0, dtm_time = 0, nai_time = 0;
 
-  std::vector<std::vector<double> > p(pw_num);
-  std::vector<std::vector<double> > w(pw_num);
-  std::vector<std::vector<double> > qs(q_num);
 
 
+  for(int n = 0; n < times; n++){
+      
+      std::vector<std::vector<double> > p(pw_num);
+      std::vector<std::vector<double> > w(pw_num);
+      std::vector<std::vector<double> > qs(q_num);
 
       randinit(p,D,0,1);
       //read_file(p, D, "dianping.dat");
@@ -47,7 +49,7 @@ int main(int argc, char* argv[])
           //put_vector(w[i]);
       }
 
-      for(int n = 0; n < times; n++){
+
 
       /*cluster*/
       /*CATCH clucost;
@@ -104,12 +106,12 @@ int main(int argc, char* argv[])
       nai_time += naviecost.get_cost(2);
 
       /*report*/
-      std::cout << "naive: " << std::endl;
+      /*std::cout << "naive: " << std::endl;
       print_map(navie_result);
       std::cout << "TPM: " << std::endl;
       print_map(tpm_result);
       std::cout << "DTM: " << std::endl;
-      print_map(dtm_result);
+      print_map(dtm_result);*/
 
   } //times loop
 
