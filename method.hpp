@@ -64,7 +64,7 @@ void print_map(const std::multimap<int,int>& map) {
 namespace bg = boost::geometry;
 namespace bgi = boost::geometry::index;
 namespace alo = boost::geometry::index::detail::rtree::utilities;
-typedef bg::model::point<float, 3, bg::cs::cartesian> r_point;
+typedef bg::model::point<float, 5, bg::cs::cartesian> r_point;
 
 std::multimap<int,int> tpm(bgi::rtree< r_point, bgi::rstar<16> > &rtree, const std::vector<Point> &p, const std::vector<Weight> &w, const std::vector<std::vector<double> > &qs, int k, const std::vector<std::vector<double> > &quplow, bool uplow )
 {

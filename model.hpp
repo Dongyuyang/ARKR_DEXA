@@ -4,7 +4,7 @@
 #include <boost/geometry/index/rtree.hpp>
 //#include "model.hpp"
 
-#define D 3
+#define D 5
 
 /* Point: the product p (id,vector)*/
 class Point

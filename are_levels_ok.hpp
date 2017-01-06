@@ -63,12 +63,16 @@ public:
                     m_up =
                         boost::geometry::get<0>(it->first.max_corner()) * w_up[0] +
                         boost::geometry::get<1>(it->first.max_corner()) * w_up[1] +
-                        boost::geometry::get<2>(it->first.max_corner()) * w_up[2] ;
+                        boost::geometry::get<2>(it->first.max_corner()) * w_up[2] +
+                        boost::geometry::get<3>(it->first.max_corner()) * w_up[3] +
+                        boost::geometry::get<4>(it->first.max_corner()) * w_up[4] ;
 
                     m_down =
                         boost::geometry::get<0>(it->first.min_corner()) * w_down[0] +
                         boost::geometry::get<1>(it->first.min_corner()) * w_down[1] +
-                        boost::geometry::get<2>(it->first.min_corner()) * w_down[2] ;
+                        boost::geometry::get<2>(it->first.min_corner()) * w_down[2] +
+                        boost::geometry::get<3>(it->first.min_corner()) * w_down[3] +
+                        boost::geometry::get<4>(it->first.min_corner()) * w_down[4] ;
 
                     if(m_up < q_down){
                         counter++;
@@ -111,11 +115,15 @@ public:
                     p_up =
                         boost::geometry::get<0>(it) * w_up[0] +
                         boost::geometry::get<1>(it) * w_up[1] +
-                        boost::geometry::get<2>(it) * w_up[2] ;
+                        boost::geometry::get<2>(it) * w_up[2] +
+                        boost::geometry::get<3>(it) * w_up[3] +
+                        boost::geometry::get<4>(it) * w_up[4] ;
                     p_down =
                         boost::geometry::get<0>(it) * w_down[0] +
                         boost::geometry::get<1>(it) * w_down[1] +
-                        boost::geometry::get<2>(it) * w_down[2] ;
+                        boost::geometry::get<2>(it) * w_down[2] +
+                        boost::geometry::get<3>(it) * w_down[3] +
+                        boost::geometry::get<4>(it) * w_down[4];
 
                     if(p_up < q_down){
                         num_E++;

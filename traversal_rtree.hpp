@@ -76,14 +76,17 @@ public:
                     double lower_score =
                         boost::geometry::get<0>(it->first.min_corner()) * m_weight[0] +
                         boost::geometry::get<1>(it->first.min_corner()) * m_weight[1] +
-                        boost::geometry::get<2>(it->first.min_corner()) * m_weight[2] ;
-                    //boost::geometry::get<3>(it->first.min_corner()) * m_weight[3] ;
+                        boost::geometry::get<2>(it->first.min_corner()) * m_weight[2] +
+                        boost::geometry::get<3>(it->first.min_corner()) * m_weight[3] +
+                        boost::geometry::get<4>(it->first.min_corner()) * m_weight[4] ;
 
                     double upper_score =
                         boost::geometry::get<0>(it->first.max_corner()) * m_weight[0] +
                         boost::geometry::get<1>(it->first.max_corner()) * m_weight[1] +
-                        boost::geometry::get<2>(it->first.max_corner()) * m_weight[2] ;
-                    //boost::geometry::get<3>(it->first.max_corner()) * m_weight[3] ;
+                        boost::geometry::get<2>(it->first.max_corner()) * m_weight[2] +
+                        boost::geometry::get<3>(it->first.max_corner()) * m_weight[3] +
+                        boost::geometry::get<4>(it->first.max_corner()) * m_weight[4] ;
+
 
                     if (upper_score < m_qs_lower){
                         m_small_rank += m_query_points.size();
@@ -133,7 +136,9 @@ public:
                     double leaf_score =
                         boost::geometry::get<0>(it) * m_weight[0] +
                         boost::geometry::get<1>(it) * m_weight[1] +
-                        boost::geometry::get<2>(it) * m_weight[2] ;
+                        boost::geometry::get<2>(it) * m_weight[2] +
+                        boost::geometry::get<3>(it) * m_weight[3] +
+                        boost::geometry::get<4>(it) * m_weight[4] ;
 
                     for(auto q_score : q_scores){
                         if(leaf_score < q_score){

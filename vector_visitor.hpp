@@ -13,7 +13,7 @@
 
 namespace bgi = boost::geometry::index;
 namespace alo = boost::geometry::index::detail::rtree::utilities;
-typedef bg::model::point<float, 3, bg::cs::cartesian> point;
+typedef bg::model::point<float, 5, bg::cs::cartesian> point;
 
 namespace boost { namespace geometry { namespace index { namespace detail { namespace rtree { namespace utilities {
 namespace visitors {
@@ -47,10 +47,14 @@ public:
 	    w_min[0] = boost::geometry::get<0>(it->first.min_corner());
 	    w_min[1] = boost::geometry::get<1>(it->first.min_corner());
 	    w_min[2] = boost::geometry::get<2>(it->first.min_corner());
+        w_min[3] = boost::geometry::get<3>(it->first.min_corner());
+        w_min[4] = boost::geometry::get<4>(it->first.min_corner());
 	    /*w_max*/
 	    w_max[0] = boost::geometry::get<0>(it->first.max_corner());
 	    w_max[1] = boost::geometry::get<1>(it->first.max_corner());
 	    w_max[2] = boost::geometry::get<2>(it->first.max_corner());
+        w_max[3] = boost::geometry::get<3>(it->first.max_corner());
+        w_max[4] = boost::geometry::get<4>(it->first.max_corner());
 
         if(m_buffer.size() == k)
             thresold = std::prev(m_buffer.end())->first;
@@ -83,6 +87,8 @@ public:
             w[0] = boost::geometry::get<0>(it->first);
             w[1] = boost::geometry::get<1>(it->first);
             w[2] = boost::geometry::get<2>(it->first);
+            w[3] = boost::geometry::get<3>(it->first);
+            w[4] = boost::geometry::get<4>(it->first);
 
             if(m_buffer.size() >= k)
                 thresold = std::prev(m_buffer.end())->first;

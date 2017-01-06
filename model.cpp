@@ -13,7 +13,7 @@
 #include "model.hpp"
 #include "are_levels_ok.hpp"
 
-#define D 3
+#define D 5
 
 namespace alo = boost::geometry::index::detail::rtree::utilities;
 
@@ -47,12 +47,12 @@ void rt::creat_rtree_p_w(std::vector<Point> &nodes, std::vector<Weight> &vectors
     point p1;
     //ddd
     for(int i = 0;i < nodes.size(); ++i){
-      /*bg::set<0>(p1, nodes[i].value[0]);
+      bg::set<0>(p1, nodes[i].value[0]);
       bg::set<1>(p1, nodes[i].value[1]);
       bg::set<2>(p1, nodes[i].value[2]);
       bg::set<3>(p1, nodes[i].value[3]);
       bg::set<4>(p1, nodes[i].value[4]);
-      bg::set<5>(p1, nodes[i].value[5]);
+      /*bg::set<5>(p1, nodes[i].value[5]);
       bg::set<6>(p1, nodes[i].value[6]);
       bg::set<7>(p1, nodes[i].value[7]);
       bg::set<8>(p1, nodes[i].value[8]);
@@ -82,9 +82,9 @@ void rt::creat_rtree_p_w(std::vector<Point> &nodes, std::vector<Weight> &vectors
       bg::set<0>(p2, vectors[i].value[0]);
       bg::set<1>(p2, vectors[i].value[1]);
       bg::set<2>(p2, vectors[i].value[2]);
-      /*bg::set<3>(p2, vectors[i].value[3]);
+      bg::set<3>(p2, vectors[i].value[3]);
       bg::set<4>(p2, vectors[i].value[4]);
-      bg::set<5>(p2, vectors[i].value[5]);
+      /*bg::set<5>(p2, vectors[i].value[5]);
       bg::set<6>(p2, vectors[i].value[6]);
       bg::set<7>(p2, vectors[i].value[7]);
       bg::set<8>(p2, vectors[i].value[8]);
